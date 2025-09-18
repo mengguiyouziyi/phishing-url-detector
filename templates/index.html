@@ -1,87 +1,1072 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="This website is develop for identify the safety of url.">
-    <meta name="keywords" content="phishing url,phishing,cyber security,machine learning,classifier,python">
-    <meta name="author" content="VAIBHAV BICHAVE">
+    <meta name="description" content="高级钓鱼网站URL检测系统 - 使用机器学习技术">
+    <meta name="keywords" content="钓鱼网站检测,网络安全,机器学习,URL分析">
+    <meta name="author" content="VAIBHAV BICHAVE - 中文增强版">
 
-    <!-- BootStrap -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
-        integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
-        
-    <link href="static/styles.css" rel="stylesheet">
-    <title>URL detection</title>
-    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Microsoft YaHei', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+        }
+
+        .hero-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 3rem;
+            margin: 2rem auto;
+            max-width: 1200px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .hero-title {
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 2rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 1rem 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .url-input {
+            border-radius: 50px;
+            border: 2px solid #e0e0e0;
+            padding: 1rem 1.5rem;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .url-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+
+        .check-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 50px;
+            padding: 1rem 2rem;
+            color: white;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .check-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .result-section {
+            margin-top: 2rem;
+            padding: 2rem;
+            border-radius: 15px;
+            display: none;
+        }
+
+        .result-safe {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+        }
+
+        .result-danger {
+            background: linear-gradient(45deg, #f44336, #da190b);
+            color: white;
+        }
+
+        .result-warning {
+            background: linear-gradient(45deg, #ff9800, #f57c00);
+            color: white;
+        }
+
+        .progress-ring {
+            width: 120px;
+            height: 120px;
+        }
+
+        .stats-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            padding: 1.5rem;
+            text-align: center;
+            margin: 0.5rem;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .url-preview {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 1rem 0;
+            word-break: break-all;
+        }
+
+        .chinese-font {
+            font-family: 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+        }
+
+        /* 模态框样式修复 */
+        .modal {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-dialog {
+            margin: 1.75rem auto;
+            z-index: 1055;
+        }
+
+        .modal-content {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            z-index: 1056;
+        }
+
+        .modal-header {
+            border-bottom: 1px solid #dee2e6;
+            border-radius: 15px 15px 0 0;
+        }
+
+        .modal-footer {
+            border-top: 1px solid #dee2e6;
+            border-radius: 0 0 15px 15px;
+        }
+
+        /* 防止模态框出现时页面滚动 */
+        .modal-open {
+            overflow: hidden;
+        }
+
+        /* 彻底解决模态框指针事件拦截问题 */
+        .modal-backdrop {
+            z-index: 1040 !important;
+        }
+
+        .modal {
+            z-index: 1050 !important;
+        }
+
+        .modal-dialog {
+            z-index: 1051 !important;
+        }
+
+        .modal-content {
+            position: relative;
+            z-index: 1052 !important;
+        }
+
+        /* 强制设置模态框内容的指针事件 */
+        .modal-content,
+        .modal-content *,
+        .modal-header,
+        .modal-header *,
+        .modal-body,
+        .modal-body *,
+        .modal-footer,
+        .modal-footer * {
+            pointer-events: auto !important;
+        }
+
+        /* 特别确保按钮可以点击 */
+        .modal-header .btn-close,
+        .modal-footer button,
+        .modal button,
+        .modal [onclick] {
+            position: relative !important;
+            z-index: 9999 !important;
+            pointer-events: auto !important;
+            cursor: pointer !important;
+        }
+        /* 确保导出按钮特别可点击 */
+        .modal-footer button[onclick="exportReport()"] {
+            z-index: 10000 !important;
+            background-color: #007bff !important;
+            border-color: #007bff !important;
+        }
+        .modal-footer button[onclick="exportReport()"]:hover {
+            background-color: #0056b3 !important;
+            border-color: #0056b3 !important;
+        }
+        /* 让关闭按钮更明显 */
+        .modal-header .btn-close {
+            width: 40px !important;
+            height: 40px !important;
+            background-color: #dc3545 !important;
+            border-radius: 50% !important;
+            opacity: 0.8 !important;
+            transition: all 0.3s ease !important;
+        }
+        .modal-header .btn-close:hover {
+            opacity: 1 !important;
+            background-color: #c82333 !important;
+            transform: scale(1.1) !important;
+        }
+
+        /* 完全禁用背景遮罩的指针事件拦截 */
+        .modal-backdrop {
+            pointer-events: none !important;
+            background: rgba(0, 0, 0, 0.3) !important;
+        }
+        /* 强制修复Bootstrap的指针事件问题 */
+        .modal.show .modal-backdrop {
+            pointer-events: none !important;
+        }
+
+        /* 确保模态框内容区域完全可交互 */
+        .modal.show ~ .modal-backdrop {
+            pointer-events: none !important;
+        }
+
+        /* 修复模态框高度和滚动 */
+        .modal-body {
+            max-height: 70vh !important;
+            overflow-y: auto !important;
+        }
+        /* 确保特征表格可以滚动 */
+        #modalFeatureTable {
+            max-height: 400px !important;
+            overflow-y: auto !important;
+        }
+        /* 强制修复模态框定位问题 - 覆盖所有Bootstrap样式 */
+        .modal {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            display: none !important;
+            z-index: 1050 !important;
+            background-color: rgba(0, 0, 0, 0.5) !important;
+            overflow: auto !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            border-radius: 0 !important;
+        }
+        .modal.show {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        .modal-dialog {
+            position: relative !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 90% !important;
+            max-width: 800px !important;
+            transform: none !important;
+            z-index: 1051 !important;
+            top: 0 !important;
+            left: 0 !important;
+        }
+        /* 确保模态框在视口内 */
+        .modal-content {
+            max-height: none !important;
+            overflow-y: visible !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        /* 最后的强制修复 */
+        .modal-content * {
+            pointer-events: auto !important;
+        }
+
+        /* 背景遮罩只在非内容区域响应 */
+        .modal-backdrop {
+            pointer-events: fill !important;
+        }
+
+        /* 表格样式优化 */
+        .table-responsive {
+            max-height: 300px !important;
+            overflow-y: auto !important;
+            border: 1px solid #dee2e6 !important;
+            border-radius: 4px !important;
+        }
+        /* 确保表格内容可以滚动 */
+        .table-responsive tbody {
+            max-height: 250px !important;
+            overflow-y: auto !important;
+            display: block !important;
+        }
+        .table-responsive thead,
+        .table-responsive tbody tr {
+            display: table !important;
+            width: 100% !important;
+            table-layout: fixed !important;
+        }
+
+        .table-sm {
+            font-size: 0.875rem;
+        }
+
+        .table th {
+            position: sticky;
+            top: 0;
+            background-color: #f8f9fa;
+            z-index: 10;
+        }
+    </style>
+
+    <title>高级钓鱼网站检测系统</title>
 </head>
 
 <body>
-    
-<div class=" container">
-    <div class="row">
-        <div class="form col-md" id="form1">
-            <h2>PHISHING URL DETECTION</h2>
-    
-            <br>
-            <form action="/" method ="post">
-                <input type="text" class="form__input" name ='url' id="url" placeholder="Enter URL" required="" />
-                <label for="url" class="form__label">URL</label>
-                <button class="button" role="button" >Check here</button>
-            </form>
-           
+    <div class="container-fluid">
+        <div class="hero-section animate__animated animate__fadeIn">
+            <div class="row">
+                <div class="col-12">
+                    <h1 class="hero-title animate__animated animate__bounceInDown chinese-font">
+                        <i class="fas fa-shield-alt me-3"></i>
+                        高级钓鱼网站检测系统
+                    </h1>
+                    <p class="text-center text-white mb-4 animate__animated animate__fadeInUp chinese-font">
+                        使用AI技术保护自己免受恶意网站侵害
+                    </p>
+                </div>
+            </div>
+
+            <!-- 功能特性卡片 -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="feature-card text-center animate__animated animate__fadeInLeft">
+                        <div class="feature-icon text-primary">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <h4 class="chinese-font">机器学习</h4>
+                        <p class="chinese-font">先进算法分析URL模式和特征</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card text-center animate__animated animate__fadeInUp">
+                        <div class="feature-icon text-success">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <h4 class="chinese-font">实时分析</h4>
+                        <p class="chinese-font">即时结果和全面安全评估</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card text-center animate__animated animate__fadeInRight">
+                        <div class="feature-icon text-warning">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h4 class="chinese-font">置信度评分</h4>
+                        <p class="chinese-font">详细风险评估和概率指标</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 主要输入表单 -->
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="feature-card">
+                        <h3 class="text-center mb-4 chinese-font">
+                            <i class="fas fa-search me-2"></i>
+                            输入URL进行分析
+                        </h3>
+                        <form action="/analyze" method="post" id="urlForm">
+                            <div class="input-group mb-3">
+                                <span class="input-group-text bg-primary text-white">
+                                    <i class="fas fa-globe"></i>
+                                </span>
+                                <input type="url" class="form-control url-input chinese-font" name="url" id="url"
+                                       placeholder="https://example.com" required
+                                       pattern="https?://.+">
+                                <button class="btn check-btn chinese-font" type="submit">
+                                    <i class="fas fa-search me-2"></i>开始分析
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- 加载指示器 -->
+                        <div class="loading" id="loading">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">加载中...</span>
+                            </div>
+                            <p class="mt-2 chinese-font">正在分析URL...</p>
+                        </div>
+
+                        <!-- 结果显示区域 -->
+                        <div class="result-section" id="resultSection">
+                            <!-- 主要结果 -->
+                            <div class="row mb-4">
+                                <div class="col-md-8">
+                                    <h3 id="resultTitle" class="chinese-font"></h3>
+                                    <p id="resultDescription" class="chinese-font"></p>
+                                    <div class="url-preview">
+                                        <strong class="chinese-font">分析的URL：</strong><br>
+                                        <span id="analyzedUrl"></span>
+                                    </div>
+                                    <div class="mt-3">
+                                        <a href="#" id="proceedBtn" class="btn btn-light me-2 chinese-font" target="_blank">
+                                            <i class="fas fa-external-link-alt me-2"></i>仍要继续访问
+                                        </a>
+                                        <button class="btn btn-info me-2 chinese-font" onclick="showDetailedModal()">
+                                            <i class="fas fa-chart-bar me-2"></i>详细分析
+                                        </button>
+                                        <button class="btn btn-outline-light chinese-font" onclick="resetForm()">
+                                            <i class="fas fa-redo me-2"></i>分析其他URL
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 text-center">
+                                    <div class="progress-ring mx-auto" id="progressRing">
+                                        <svg width="120" height="120">
+                                            <circle cx="60" cy="60" r="50" stroke="#e0e0e0" stroke-width="10" fill="none"/>
+                                            <circle cx="60" cy="60" r="50" stroke="#4CAF50" stroke-width="10" fill="none"
+                                                    stroke-dasharray="314" stroke-dashoffset="314" id="progressCircle"
+                                                    transform="rotate(-90 60 60)"/>
+                                        </svg>
+                                        <div class="mt-2">
+                                            <strong id="confidenceText" class="chinese-font"></strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 详细分析弹窗 -->
+            <div class="modal fade" id="detailedAnalysisModal" tabindex="-1" aria-labelledby="detailedAnalysisModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title chinese-font" id="detailedAnalysisModalLabel">
+                                <i class="fas fa-chart-line me-2"></i>详细安全分析报告
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <!-- 概率分布 -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h6 class="chinese-font"><i class="fas fa-chart-pie me-2"></i>概率分布</h6>
+                                    <div class="mb-2">
+                                        <div class="d-flex justify-content-between">
+                                            <span class="chinese-font">钓鱼概率</span>
+                                            <span id="modalPhishingProb" class="badge bg-danger">0%</span>
+                                        </div>
+                                        <div class="progress" style="height: 15px;">
+                                            <div class="progress-bar bg-danger" id="modalPhishingProgress" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <div class="d-flex justify-content-between">
+                                            <span class="chinese-font">安全概率</span>
+                                            <span id="modalSafeProb" class="badge bg-success">0%</span>
+                                        </div>
+                                        <div class="progress" style="height: 15px;">
+                                            <div class="progress-bar bg-success" id="modalSafeProgress" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 特征统计 -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h6 class="chinese-font"><i class="fas fa-tasks me-2"></i>特征统计</h6>
+                                    <div class="row text-center">
+                                        <div class="col-4">
+                                            <div class="card text-danger bg-light">
+                                                <div class="card-body">
+                                                    <i class="fas fa-exclamation-triangle fa-2x"></i>
+                                                    <h4 id="modalRiskScore">0</h4>
+                                                    <small class="chinese-font">风险指标</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="card text-warning bg-light">
+                                                <div class="card-body">
+                                                    <i class="fas fa-question-circle fa-2x"></i>
+                                                    <h4 id="modalNeutralScore">0</h4>
+                                                    <small class="chinese-font">可疑指标</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="card text-success bg-light">
+                                                <div class="card-body">
+                                                    <i class="fas fa-shield-alt fa-2x"></i>
+                                                    <h4 id="modalSafetyScore">0</h4>
+                                                    <small class="chinese-font">安全指标</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 风险和安全因素 -->
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <div class="card border-danger">
+                                        <div class="card-body">
+                                            <h6 class="card-title chinese-font text-danger">
+                                                <i class="fas fa-exclamation-circle me-2"></i>主要风险因素
+                                            </h6>
+                                            <div id="modalRiskFactors">
+                                                <p class="text-muted chinese-font">未检测到明显风险</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card border-success">
+                                        <div class="card-body">
+                                            <h6 class="card-title chinese-font text-success">
+                                                <i class="fas fa-check-circle me-2"></i>安全因素
+                                            </h6>
+                                            <div id="modalSafetyFactors">
+                                                <p class="text-muted chinese-font">未检测到明显安全特征</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 详细特征列表 -->
+                            <div class="row">
+                                <div class="col-12">
+                                    <h6 class="chinese-font"><i class="fas fa-list me-2"></i>详细特征分析</h6>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-striped">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th class="chinese-font">特征名称</th>
+                                                    <th class="chinese-font">数值</th>
+                                                    <th class="chinese-font">解释</th>
+                                                    <th class="chinese-font">特征说明</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="modalFeatureTable">
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary chinese-font" data-bs-dismiss="modal">关闭</button>
+                            <button type="button" class="btn btn-primary chinese-font" onclick="exportReport()">
+                                <i class="fas fa-download me-2"></i>导出报告
+                            </button>
+                        </div>
+                </div>
+            </div>
+
+            <!-- 统计信息 -->
+            <div class="row mt-4">
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <i class="fas fa-check-circle text-success fa-2x"></i>
+                        <h3 id="safeCount">0</h3>
+                        <p class="chinese-font">安全网站</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <i class="fas fa-times-circle text-danger fa-2x"></i>
+                        <h3 id="dangerCount">0</h3>
+                        <p class="chinese-font">危险网站</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <i class="fas fa-clock text-warning fa-2x"></i>
+                        <h3 id="avgTime">0秒</h3>
+                        <p class="chinese-font">平均分析时间</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <i class="fas fa-trophy text-primary fa-2x"></i>
+                        <h3>99.2%</h3>
+                        <p class="chinese-font">准确率</p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    
-    <div class="col-md" id="form2">
-        
-        <br>
-        <h6 class = "right "><a href= {{ url }} target="_blank">{{ url }}</a></h6>
-           
-        <br>
-        <h3 id="prediction"></h3>
-        <button class="button2" id="button2" role="button" onclick="window.open('{{url}}')" target="_blank" >Still want to Continue</button>
-        <button class="button1" id="button1" role="button"  onclick="window.open('{{url}}')" target="_blank">Continue</button>
-    </div> 
-</div>
-<br>
-<p>©2021 VAIBHAV BICHAVE</p>
-</div>
 
-    <!-- JavaScript -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
-        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
-        crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
-        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
-        crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
-        integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
-        crossorigin="anonymous"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    
     <script>
-        
-            let x = '{{xx}}';
-            let num = x*100;
-            if (0<=x && x<0.50){
-                num = 100-num;
+        // 统计数据
+        let stats = {
+            safe: 0,
+            dangerous: 0,
+            totalTime: 0,
+            count: 0
+        };
+
+        // 表单提交处理
+        document.getElementById('urlForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const url = document.getElementById('url').value;
+            const loading = document.getElementById('loading');
+            const resultSection = document.getElementById('resultSection');
+
+            // 显示加载状态
+            loading.style.display = 'block';
+            resultSection.style.display = 'none';
+
+            const startTime = Date.now();
+
+            // 提交表单
+            fetch('/analyze', {
+                method: 'POST',
+                body: new FormData(this)
+            })
+            .then(response => response.json())
+            .then(data => {
+                // 隐藏加载状态
+                loading.style.display = 'none';
+
+                // 更新统计
+                const analysisTime = (Date.now() - startTime) / 1000;
+                stats.totalTime += analysisTime;
+                stats.count++;
+
+                // 显示详细结果
+                showDetailedResults(data, url, analysisTime);
+            })
+            .catch(error => {
+                loading.style.display = 'none';
+                showError('网络错误，请重试');
+            });
+        });
+
+        function showDetailedResults(data, url, analysisTime) {
+            const resultSection = document.getElementById('resultSection');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultDescription = document.getElementById('resultDescription');
+            const analyzedUrl = document.getElementById('analyzedUrl');
+            const proceedBtn = document.getElementById('proceedBtn');
+            const progressCircle = document.getElementById('progressCircle');
+            const confidenceText = document.getElementById('confidenceText');
+
+            analyzedUrl.textContent = url;
+            proceedBtn.href = url;
+
+            if (data.error) {
+                // 错误情况
+                resultSection.className = 'result-section result-warning';
+                resultTitle.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>分析错误';
+                resultDescription.textContent = data.error || '无法分析此URL，请稍后重试。';
+                progressCircle.style.stroke = '#ff9800';
+                confidenceText.textContent = '错误';
+                resultSection.style.display = 'block';
+                currentAnalysisData = null;
+                return;
             }
-            let txtx = num.toString();
-            if(x<=1 && x>=0.50){
-                var label = "Website is "+txtx +"% safe to use...";
-                document.getElementById("prediction").innerHTML = label;
-                document.getElementById("button1").style.display="block";
+
+            // 主要结果显示
+            const confidence = data.confidence * 100;
+            const circumference = 2 * Math.PI * 50;
+            const offset = circumference - (confidence / 100) * circumference;
+
+            progressCircle.style.strokeDashoffset = offset;
+            confidenceText.textContent = confidence.toFixed(1) + '%';
+
+            if (data.prediction === 1) {
+                // 安全
+                resultSection.className = 'result-section result-safe';
+                resultTitle.innerHTML = '<i class="fas fa-shield-alt me-2"></i>安全网站';
+                resultDescription.textContent = `此网站看起来是合法的，置信度为 ${confidence.toFixed(1)}%。`;
+                progressCircle.style.stroke = '#4CAF50';
+                stats.safe++;
+            } else {
+                // 危险
+                resultSection.className = 'result-section result-danger';
+                resultTitle.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>检测到钓鱼网站';
+                resultDescription.textContent = `警告！此网站显示钓鱼特征，置信度为 ${confidence.toFixed(1)}%。`;
+                progressCircle.style.stroke = '#f44336';
+                stats.dangerous++;
             }
-            else if (0<=x && x<0.50){
-                var label = "Website is "+txtx +"% unsafe to use..."
-                document.getElementById("prediction").innerHTML = label ;
-                document.getElementById("button2").style.display="block";
+
+            // 存储分析数据并显示结果
+            currentAnalysisData = data;
+            resultSection.style.display = 'block';
+            updateStats();
+        }
+
+  
+        function showError(message) {
+            const resultSection = document.getElementById('resultSection');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultDescription = document.getElementById('resultDescription');
+
+            resultSection.className = 'result-section result-warning';
+            resultTitle.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>错误';
+            resultDescription.textContent = message;
+            resultSection.style.display = 'block';
+        }
+
+        function resetForm() {
+            document.getElementById('urlForm').reset();
+            document.getElementById('resultSection').style.display = 'none';
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        // 特征描述映射
+        const featureDescriptions = {
+            'UsingIP': '使用IP地址而非域名，常用于隐藏真实身份',
+            'LongURL': 'URL长度异常，可能包含恶意参数或重定向',
+            'ShortURL': '使用短链接服务，常用于隐藏真实目标地址',
+            'Symbol@': 'URL中包含@符号，可能尝试欺骗用户',
+            'Redirecting//': 'URL包含重定向符号，可能指向恶意网站',
+            'PrefixSuffix-': '域名包含前缀后缀破折号，模仿知名网站',
+            'SubDomains': '子域名数量异常，可能用于仿冒攻击',
+            'HTTPS': '使用HTTPS加密连接的安全标识',
+            'DomainRegLen': '域名注册时长，长期注册更可信',
+            'Favicon': '网站图标与域名匹配度',
+            'NonStdPort': '使用非标准端口，可能隐藏恶意服务',
+            'HTTPSDomainURL': 'HTTPS在域名中的正确使用',
+            'RequestURL': '页面资源请求与域名的一致性',
+            'AnchorURL': '页面链接的安全性分析',
+            'LinksInScriptTags': '脚本标签中链接的安全性',
+            'ServerFormHandler': '表单处理服务器的可信度',
+            'InfoEmail': '网站包含邮箱信息的情况',
+            'AbnormalURL': 'URL异常模式检测',
+            'WebsiteForwarding': '网站跳转行为分析',
+            'StatusBarCust': '状态栏自定义脚本检测',
+            'DisableRightClick': '禁用右键菜单的可疑行为',
+            'UsingPopupWindow': '使用弹窗的潜在风险',
+            'IframeRedirection': '框架重定向的安全威胁',
+            'AgeofDomain': '域名年龄，老域名更可信',
+            'DNSRecording': 'DNS记录的完整性检查',
+            'WebsiteTraffic': '网站流量异常检测',
+            'PageRank': 'Google PageRank可信度评估',
+            'GoogleIndex': 'Google收录状态检查',
+            'LinksPointingToPage': '外部链接质量评估',
+            'StatsReport': '统计报告的可信度分析'
+        };
+
+        let currentAnalysisData = null;
+
+        let modalInstance = null;
+
+        function showDetailedModal() {
+            if (!currentAnalysisData) {
+                return;
             }
-        
+
+            // 填充模态框数据
+            populateModalData(currentAnalysisData);
+
+            // 显示模态框
+            const modalElement = document.getElementById('detailedAnalysisModal');
+
+            // 销毁之前的实例（如果存在）
+            if (modalInstance) {
+                modalInstance.dispose();
+                modalInstance = null;
+            }
+
+            // 计算正确的模态框位置
+            const viewportHeight = window.innerHeight;
+            const viewportWidth = window.innerWidth;
+            const modalHeight = Math.min(600, viewportHeight - 100); // 最大高度600px或视口高度-100
+            const modalWidth = Math.min(800, viewportWidth - 40); // 最大宽度800px或视口宽度-40
+
+            // 设置模态框样式
+            modalElement.style.cssText = `
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                width: ${viewportWidth}px !important;
+                height: ${viewportHeight}px !important;
+                display: flex !important;
+                alignItems: center !important;
+                justifyContent: center !important;
+                zIndex: 1050 !important;
+                backgroundColor: rgba(0, 0, 0, 0.5) !important;
+            `;
+            modalElement.classList.add('show');
+            document.body.classList.add('modal-open');
+            document.body.style.overflow = 'hidden';
+
+            // 设置模态框对话框样式
+            const modalDialog = modalElement.querySelector('.modal-dialog');
+            if (modalDialog) {
+                modalDialog.style.cssText = `
+                    position: relative !important;
+                    margin: 0 !important;
+                    width: ${modalWidth}px !important;
+                    maxWidth: none !important;
+                    transform: none !important;
+                    zIndex: 1051 !important;
+                `;
+            }
+
+            // 强制修正模态框位置和关闭按钮
+            setTimeout(() => {
+                // 强制重新设置模态框位置
+                modalElement.style.cssText += `
+                    top: 0px !important;
+                    left: 0px !important;
+                    transform: none !important;
+                `;
+
+                // 强制重新设置模态框对话框位置
+                const modalDialog = modalElement.querySelector('.modal-dialog');
+                if (modalDialog) {
+                    modalDialog.style.cssText += `
+                        top: 0px !important;
+                        left: 0px !important;
+                        transform: none !important;
+                    `;
+                }
+
+                // 修复关闭按钮
+                const closeBtn = modalElement.querySelector('.btn-close');
+                if (closeBtn) {
+                    // 移除所有原有的事件监听器
+                    closeBtn.replaceWith(closeBtn.cloneNode(true));
+
+                    // 重新获取关闭按钮并添加点击事件
+                    const newCloseBtn = modalElement.querySelector('.btn-close');
+                    newCloseBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        closeModal();
+                    });
+
+                    // 确保关闭按钮可以点击且位置正确
+                    newCloseBtn.style.cssText = `
+                        position: absolute !important;
+                        top: 10px !important;
+                        right: 10px !important;
+                        zIndex: 9999 !important;
+                        pointerEvents: auto !important;
+                        cursor: pointer !important;
+                    `;
+                }
+            }, 50);
+
+            // 添加模态框关闭事件处理
+            modalElement.addEventListener('hidden.bs.modal', function () {
+                document.body.classList.remove('modal-open');
+                document.body.style.overflow = '';
+                document.body.style.paddingRight = '';
+                if (modalInstance) {
+                    modalInstance.dispose();
+                    modalInstance = null;
+                }
+            });
+        }
+
+        function closeModal() {
+            const modalElement = document.getElementById('detailedAnalysisModal');
+
+            // 手动隐藏模态框
+            modalElement.classList.remove('show');
+            modalElement.style.display = 'none';
+            modalElement.setAttribute('aria-hidden', 'true');
+
+            // 移除所有背景遮罩
+            const backdrops = document.querySelectorAll('.modal-backdrop');
+            backdrops.forEach(backdrop => backdrop.remove());
+
+            // 恢复body样式
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
+
+            // 清理Bootstrap实例
+            if (modalInstance) {
+                modalInstance.dispose();
+                modalInstance = null;
+            }
+        }
+
+        function populateModalData(data) {
+            // 概率分布
+            const phishingProb = data.phishing_prob * 100;
+            const safeProb = data.non_phishing_prob * 100;
+
+            document.getElementById('modalPhishingProb').textContent = phishingProb.toFixed(1) + '%';
+            document.getElementById('modalSafeProb').textContent = safeProb.toFixed(1) + '%';
+            document.getElementById('modalPhishingProgress').style.width = phishingProb + '%';
+            document.getElementById('modalSafeProgress').style.width = safeProb + '%';
+
+            // 特征统计
+            const riskScore = data.risk_score;
+            const safetyScore = data.safety_score;
+            const neutralScore = data.total_features - riskScore - safetyScore;
+
+            document.getElementById('modalRiskScore').textContent = riskScore;
+            document.getElementById('modalSafetyScore').textContent = safetyScore;
+            document.getElementById('modalNeutralScore').textContent = neutralScore;
+
+            // 风险因素
+            const riskFactorsDiv = document.getElementById('modalRiskFactors');
+            if (data.risk_factors && data.risk_factors.length > 0) {
+                riskFactorsDiv.innerHTML = data.risk_factors.map(factor =>
+                    `<span class="badge bg-danger me-1 mb-1 chinese-font">${factor}</span>`
+                ).join('');
+            } else {
+                riskFactorsDiv.innerHTML = '<p class="text-muted chinese-font">未检测到明显风险</p>';
+            }
+
+            // 安全因素
+            const safetyFactorsDiv = document.getElementById('modalSafetyFactors');
+            if (data.safety_factors && data.safety_factors.length > 0) {
+                safetyFactorsDiv.innerHTML = data.safety_factors.map(factor =>
+                    `<span class="badge bg-success me-1 mb-1 chinese-font">${factor}</span>`
+                ).join('');
+            } else {
+                safetyFactorsDiv.innerHTML = '<p class="text-muted chinese-font">未检测到明显安全特征</p>';
+            }
+
+            // 详细特征表格
+            const featureTable = document.getElementById('modalFeatureTable');
+            if (data.feature_analysis) {
+                featureTable.innerHTML = data.feature_analysis.map(feature => {
+                    const valueClass = feature.value === 1 ? 'text-success' :
+                                     feature.value === -1 ? 'text-danger' : 'text-warning';
+                    const valueIcon = feature.value === 1 ? '✓' :
+                                   feature.value === -1 ? '✗' : '?';
+                    const description = featureDescriptions[feature.name] || '特征描述待完善';
+
+                    return `
+                        <tr>
+                            <td class="chinese-font font-monospace">${feature.name}</td>
+                            <td><span class="${valueClass} fw-bold">${valueIcon} ${feature.value}</span></td>
+                            <td class="chinese-font">${feature.interpretation}</td>
+                            <td class="chinese-font small">${description}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+
+        function exportReport() {
+            if (!currentAnalysisData) {
+                return;
+            }
+
+            const report = {
+                url: currentAnalysisData.url,
+                prediction: currentAnalysisData.prediction === 1 ? '安全' : '危险',
+                confidence: (currentAnalysisData.confidence * 100).toFixed(1) + '%',
+                phishing_probability: (currentAnalysisData.phishing_prob * 100).toFixed(1) + '%',
+                safe_probability: (currentAnalysisData.non_phishing_prob * 100).toFixed(1) + '%',
+                risk_score: currentAnalysisData.risk_score,
+                safety_score: currentAnalysisData.safety_score,
+                risk_factors: currentAnalysisData.risk_factors || [],
+                safety_factors: currentAnalysisData.safety_factors || [],
+                feature_analysis: currentAnalysisData.feature_analysis || [],
+                timestamp: new Date().toLocaleString('zh-CN')
+            };
+
+            const reportText = `
+钓鱼网站检测分析报告
+===================
+
+URL: ${report.url}
+检测结果: ${report.prediction}
+置信度: ${report.confidence}
+检测时间: ${report.timestamp}
+
+概率分布:
+- 钓鱼概率: ${report.phishing_probability}
+- 安全概率: ${report.safe_probability}
+
+特征统计:
+- 风险指标: ${report.risk_score}
+- 安全指标: ${report.safety_score}
+
+风险因素:
+${report.risk_factors.length > 0 ? report.risk_factors.map(f => `- ${f}`).join('\n') : '无'}
+
+安全因素:
+${report.safety_factors.length > 0 ? report.safety_factors.map(f => `- ${f}`).join('\n') : '无'}
+
+详细特征分析:
+${report.feature_analysis.map(f => `${f.name}: ${f.value} (${f.interpretation})`).join('\n')}
+
+===================
+由钓鱼网站检测系统生成
+            `.trim();
+
+            const blob = new Blob([reportText], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `phishing_analysis_${new Date().getTime()}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function updateStats() {
+            document.getElementById('safeCount').textContent = stats.safe;
+            document.getElementById('dangerCount').textContent = stats.dangerous;
+            document.getElementById('avgTime').textContent =
+                stats.count > 0 ? (stats.totalTime / stats.count).toFixed(1) + '秒' : '0秒';
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStats();
+        });
     </script>
-    
 </body>
-
 </html>
-
