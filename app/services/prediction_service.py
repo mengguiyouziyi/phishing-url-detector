@@ -102,7 +102,8 @@ class PredictionService:
                 'domain_registration', 'favicon', 'port', 'https_token',
                 'request_url', 'anchor_url', 'links_in_tags', 'sfh', 'email',
                 'abnormal_url', 'iframe', 'age_domain', 'dns_record', 'web_traffic',
-                'page_rank', 'google_index', 'links_pointing', 'statistical_report'
+                'page_rank', 'google_index', 'links_pointing', 'statistical_report',
+                'Extra_Feature_1', 'Extra_Feature_2', 'Extra_Feature_3'
             ]
 
             feature_vector = []

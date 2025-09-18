@@ -7,8 +7,8 @@ import asyncio
 from typing import Dict, Any, Optional
 import logging
 from urllib.parse import urlparse
-import signal
-from contextlib import contextmanager
+import threading
+import time
 
 from app.utils.error_handlers import FeatureExtractionError
 from feature import FeatureExtraction
@@ -19,21 +19,28 @@ class TimeoutError(Exception):
     """Custom timeout error"""
     pass
 
-@contextmanager
-def timeout_handler(timeout: int):
-    """Context manager for timeout handling"""
-    def handler(signum, frame):
+def run_with_timeout(func, timeout, *args, **kwargs):
+    """Run function with timeout using threading"""
+    result = [None, None]
+
+    def worker():
+        try:
+            result[0] = func(*args, **kwargs)
+        except Exception as e:
+            result[1] = e
+
+    thread = threading.Thread(target=worker)
+    thread.daemon = True
+    thread.start()
+    thread.join(timeout=timeout)
+
+    if thread.is_alive():
         raise TimeoutError(f"Operation timed out after {timeout} seconds")
 
-    # Set up signal handler
-    old_handler = signal.signal(signal.SIGALRM, handler)
-    signal.alarm(timeout)
+    if result[1]:
+        raise result[1]
 
-    try:
-        yield
-    finally:
-        signal.alarm(0)
-        signal.signal(signal.SIGALRM, old_handler)
+    return result[0]
 
 class FeatureExtractionService:
     """Service for extracting URL features"""
@@ -76,8 +83,7 @@ class FeatureExtractionService:
     def _extract_features_sync(self, url: str) -> Dict[str, Any]:
         """Synchronous feature extraction with timeout"""
         try:
-            # Use timeout context manager
-            with timeout_handler(30):  # 30 second timeout
+            def extract_features():
                 extractor = FeatureExtraction(url)
                 features_list = extractor.getFeaturesList()
 
@@ -88,13 +94,17 @@ class FeatureExtractionService:
                     'domain_registration', 'favicon', 'port', 'https_token',
                     'request_url', 'anchor_url', 'links_in_tags', 'sfh', 'email',
                     'abnormal_url', 'iframe', 'age_domain', 'dns_record', 'web_traffic',
-                    'page_rank', 'google_index', 'links_pointing', 'statistical_report'
+                    'page_rank', 'google_index', 'links_pointing', 'statistical_report',
+                    'Extra_Feature_1', 'Extra_Feature_2', 'Extra_Feature_3'
                 ]
 
                 if len(features_list) != len(feature_names):
                     raise FeatureExtractionError(f"Feature count mismatch: got {len(features_list)}, expected {len(feature_names)}")
 
                 return dict(zip(feature_names, features_list))
+
+            # Use timeout wrapper
+            return run_with_timeout(extract_features, 30)
 
         except TimeoutError as e:
             raise FeatureExtractionError(str(e))
